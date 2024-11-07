@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+on: workflow_dispatch
+
+
+permissions:
+  pages: write # to deploy to Pages
+  id-token: write # to verify the deployment originates from an appropriate source
+  
+jobs:
+  build:
+    name: Build Docusaurus
+    runs-on: windows-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: se Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build website
+        run: |
+          cd website
+          pnpm build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
